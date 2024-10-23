@@ -21,14 +21,19 @@ filtering many aspects of the generative text process train. These
 methods address the following questions:
 
 -  Does a RAG/GraphRAG have any context to answer the user's question?
+
 -  Does the retrieved context contain good candidates to 
    provide a complete answer (e.g. are the retrieved context too dense/sparse)?
+
 -  Does the generated LLM response deviate from the provided context? (Hallucination) 
+
 -  Given a collection of questions, should an extracted portion of text 
    be added to an existing RAG with respect to its ability to answer any 
    of the questions in the collection?
+
 -  Given an existing RAG, what is the probability that a new portion of text
    belongs to the RAG cluster?
+   
 -  Given a collection of embedded text (e.g. context, user question and 
    answers, synthetic generated data, etc...), what components are 
    considered inliers and outliers?
