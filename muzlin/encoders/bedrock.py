@@ -7,7 +7,7 @@ and AWS Secret Access Key and supports customization of the pre-trained model, s
 
 Example usage:
 
-    from semantic_router.encoders.bedrock_encoder import BedrockEncoder
+    from muzlin.encoders.bedrock_encoder import BedrockEncoder
 
     encoder = BedrockEncoder(access_key_id="your-access-key-id", secret_access_key="your-secret-key", region="your-region")
     embeddings = encoder(["document1", "document2"])

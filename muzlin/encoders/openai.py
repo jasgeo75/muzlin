@@ -9,10 +9,10 @@ from openai._types import NotGiven
 from openai.types import CreateEmbeddingResponse
 import tiktoken
 
-from semantic_router.encoders import BaseEncoder
-from semantic_router.schema import EncoderInfo
-from semantic_router.utils.defaults import EncoderDefault
-from semantic_router.utils.logger import logger
+from muzlin.encoders import BaseEncoder
+from muzlin.schema import EncoderInfo
+from muzlin.utils.defaults import EncoderDefault
+from muzlin.utils.logger import logger
 
 # Code adapted from https://github.com/aurelio-labs/semantic-router/blob/main/semantic_router/encoders/openai.py
 
