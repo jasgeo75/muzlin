@@ -1,0 +1,36 @@
+# Publishes to PyPi
+
+name: Publish Release
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    if: contains(github.event.head_commit.message, 'bump') && github.actor == 'KulikDM'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          printf "Preparing to install dependancies\n"
+
+          python -m pip install --upgrade pip setuptools wheel twine build
+          python -m build
+
+          printf "\nPackage created locally\n"
+
+          python -m twine upload dist/* -u $TWINE_USERNAME -p $TWINE_PASSWORD
+
+          printf "\nNew PyPi release created\n"
