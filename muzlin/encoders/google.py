@@ -16,7 +16,7 @@ class GoogleEncoder(BaseEncoder):
     """
 
     client: Optional[Any] = None
-    type: str = "google"
+    type: str = 'google'
 
     def __init__(
         self,
@@ -48,11 +48,12 @@ class GoogleEncoder(BaseEncoder):
             client fails to initialize.
         """
         if name is None:
-            name = EncoderDefault.GOOGLE.value["embedding_model"]
+            name = EncoderDefault.GOOGLE.value['embedding_model']
 
         super().__init__(name=name, score_threshold=score_threshold)
 
-        self.client = self._initialize_client(project_id, location, api_endpoint)
+        self.client = self._initialize_client(
+            project_id, location, api_endpoint)
 
     def _initialize_client(self, project_id, location, api_endpoint):
         """Initializes the Google AI Platform client.
@@ -76,14 +77,14 @@ class GoogleEncoder(BaseEncoder):
             from vertexai.language_models import TextEmbeddingModel
         except ImportError:
             raise ImportError(
-                "Please install Google Cloud and Vertex AI libraries to use GoogleEncoder. "
-                "You can install them with: "
-                "`pip install google-cloud-aiplatform vertexai-language-models`"
+                'Please install Google Cloud and Vertex AI libraries to use GoogleEncoder. '
+                'You can install them with: '
+                '`pip install google-cloud-aiplatform vertexai-language-models`'
             )
 
-        project_id = project_id or os.getenv("GOOGLE_PROJECT_ID")
-        location = location or os.getenv("GOOGLE_LOCATION", "us-central1")
-        api_endpoint = api_endpoint or os.getenv("GOOGLE_API_ENDPOINT")
+        project_id = project_id or os.getenv('GOOGLE_PROJECT_ID')
+        location = location or os.getenv('GOOGLE_LOCATION', 'us-central1')
+        api_endpoint = api_endpoint or os.getenv('GOOGLE_API_ENDPOINT')
 
         if project_id is None:
             raise ValueError("Google Project ID cannot be 'None'.")
@@ -115,9 +116,10 @@ class GoogleEncoder(BaseEncoder):
             API call fails.
         """
         if self.client is None:
-            raise ValueError("Google AI Platform client is not initialized.")
+            raise ValueError('Google AI Platform client is not initialized.')
         try:
             embeddings = self.client.get_embeddings(docs)
             return [embedding.values for embedding in embeddings]
         except Exception as e:
-            raise ValueError(f"Google AI Platform API call failed. Error: {e}") from e
+            raise ValueError(
+                f"Google AI Platform API call failed. Error: {e}") from e

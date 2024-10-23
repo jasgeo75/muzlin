@@ -7,22 +7,22 @@ import joblib
 import numpy as np
 import umap
 from pydantic.v1 import BaseModel, Field
-from pyod.models.base import BaseDetector
-from pythresh.thresholds.base import BaseThresholder
 from scipy.spatial.distance import cdist
 from sklearn.base import BaseEstimator, ClusterMixin, OutlierMixin, TransformerMixin
 from sklearn.mixture._base import BaseMixture
 from sklearn.pipeline import Pipeline
-from sklearn.utils.validation import check_is_fitted
 from sklearn.utils import check_array
+from sklearn.utils.validation import check_is_fitted
 
 from muzlin.utils.logger import logger
 
 XType = Union[np.ndarray, List[List[Union[float, int]]]]
 is_mlflow = package_spec = importlib.util.find_spec('mlflow')
 
-ClusterPredict = namedtuple('ClusterPredict', ('nclust_cls', 'topk_cls', 'density_cls'))
-ClusterDecision = namedtuple('ClusterDecision', ('nclust_dev', 'topk_dev', 'density_dev'))
+ClusterPredict = namedtuple(
+    'ClusterPredict', ('nclust_cls', 'topk_cls', 'density_cls'))
+ClusterDecision = namedtuple(
+    'ClusterDecision', ('nclust_dev', 'topk_dev', 'density_dev'))
 
 dim_reducer = umap.UMAP(n_components=10,
                         metric='euclidean',
@@ -37,7 +37,7 @@ dim_reducer = umap.UMAP(n_components=10,
 class OutlierCluster(BaseEstimator, OutlierMixin, BaseModel):
     r"""OutlierCluster class for vector based anomaly cluster detection.
 
-    Given a set of embedded vectors the OutlierCluster class can be 
+    Given a set of embedded vectors the OutlierCluster class can be
     used to fit an anomaly cluster detection model and predict on new incoming data
     if the data belongs to a subcluster e.g. matched context from a RAG or not.
 
@@ -45,14 +45,14 @@ class OutlierCluster(BaseEstimator, OutlierMixin, BaseModel):
         method (object, optional): The anomaly cluster detection model. Can either be a sklearn cluster or mixture model type. Defaults to sklearn KMeans.
         decomposer (object, None,  optional): The preprocessing decomposition model to reduce the dimensionality of the data to speed up clustering. Can be set to None to not be applied. Defaults to UMAP.
         n_retrieve (int, optional): Number of context new data must be compared to e.g. 10 retrieved docs per query. Defaults to 10.
-        mlflow (bool, optional): To use mlflow experiment tracking during model fitting. Setting False will fit a pickle file of the fitted model in the local folder. Defaults to True. 
+        mlflow (bool, optional): To use mlflow experiment tracking during model fitting. Setting False will fit a pickle file of the fitted model in the local folder. Defaults to True.
         model (str, optional): Name of the model to load/save. Defaults to 'outlier_cluster.pkl'.
         random_state: (int, optional): The random seed for model fitting. Defaults to 1234.
 
 
     Attributes:
         pipeline (object): The sklearn pipeline of the fitted model.
-        labels_ (array-like): The array of the fitted labels for clusters of the training data. 
+        labels_ (array-like): The array of the fitted labels for clusters of the training data.
         avg_std_ (float): The average cluster centriod deviation of the training data.
 
     """
@@ -67,7 +67,6 @@ class OutlierCluster(BaseEstimator, OutlierMixin, BaseModel):
     pipeline: Pipeline = Field(default=None, exclude=True)
     avg_std_: float = Field(default=None, exclude=True)
     labels_: Type[np.ndarray] = Field(default=None, exclude=True)
-    
 
     class Config:
         arbitrary_types_allowed = True
@@ -78,9 +77,9 @@ class OutlierCluster(BaseEstimator, OutlierMixin, BaseModel):
 
         self._check_is_initalized()
         if self.pipeline is not None:
-            return 
+            return
 
-        # Apply dummy function 
+        # Apply dummy function
         if self.decomposer is None:
             from sklearn.preprocessing import FunctionTransformer
             self.decomposer = FunctionTransformer(lambda x: x)
@@ -90,7 +89,7 @@ class OutlierCluster(BaseEstimator, OutlierMixin, BaseModel):
 
         if self.method is None:
             logger.info(
-                        "No clustering method was provided defaulting to KMeans."
+                'No clustering method was provided defaulting to KMeans.'
             )
             from sklearn.cluster import KMeans
             self.method = KMeans(n_clusters=2, random_state=self.random_state)
@@ -99,7 +98,6 @@ class OutlierCluster(BaseEstimator, OutlierMixin, BaseModel):
             ('decompose', self.decomposer),
             ('cluster', self.method)
         ])
-                                 
 
     def fit(self, X: XType, y=None):
         r"""Fit function of the OutlierCluster class.
@@ -117,8 +115,8 @@ class OutlierCluster(BaseEstimator, OutlierMixin, BaseModel):
                 import mlflow as ml
                 ml.autolog()
             else:
-                logger.info("MLFlow not installed, defaulting to joblib")
-                self.mflow = False  
+                logger.info('MLFlow not installed, defaulting to joblib')
+                self.mflow = False
 
         X = check_array(X, ensure_2d=True)
 
@@ -141,7 +139,8 @@ class OutlierCluster(BaseEstimator, OutlierMixin, BaseModel):
 
         # Get the avg median centroid deviation
         unq_labels = np.unique(labels)
-        stds = [np.median(np.abs(np.mean(X[label], axis=0) - X[label])) for label in unq_labels]
+        stds = [np.median(np.abs(np.mean(X[label], axis=0) - X[label]))
+                for label in unq_labels]
         avg_std = np.mean(stds)
 
         setattr(self.pipeline, 'avg_std_', avg_std)
@@ -150,7 +149,7 @@ class OutlierCluster(BaseEstimator, OutlierMixin, BaseModel):
         # Relog model to save attr
         if self.mlflow:
             run_id = self._fetch_mlflow_run_id()
-            with ml.start_run(run_id=run_id) as run:
+            with ml.start_run(run_id=run_id) as _:
                 ml.sklearn.log_model(self.pipeline, 'model')
 
         if not self.mlflow:
@@ -171,7 +170,7 @@ class OutlierCluster(BaseEstimator, OutlierMixin, BaseModel):
             labels (tuple): NamedTuple of predicted class for the three tests:
                 - clust_cls: Binary label for belonging to an optimal number of clusters (e.g. not to dense or sparse in detail).
                 - topk_cls: Binary label for being a realistic cluster with respect to the entire fitted data.
-                - density_cls: Binary label for being from context centriod with respect to compactness. 
+                - density_cls: Binary label for being from context centriod with respect to compactness.
 
         """
 
@@ -186,9 +185,9 @@ class OutlierCluster(BaseEstimator, OutlierMixin, BaseModel):
         topk_dev = scores.topk_dev
         density_dev = scores.density_dev
 
-        nclust_class = 0 if nclust_dev<= 0.5 else 1
-        topk_class = 0 if topk_dev<=1 else 1
-        density_class = 0 if density_dev<=1 else 1
+        nclust_class = 0 if nclust_dev <= 0.5 else 1
+        topk_class = 0 if topk_dev <= 1 else 1
+        density_class = 0 if density_dev <= 1 else 1
 
         return ClusterPredict(nclust_cls=nclust_class, topk_cls=topk_class, density_cls=density_class)
 
@@ -203,7 +202,7 @@ class OutlierCluster(BaseEstimator, OutlierMixin, BaseModel):
             scores (tuple): NamedTuple of predicted class for the three tests:
                 - nclust_dev: Deviation from belonging to an optimal number of clusters (e.g. not to dense or sparse in detail).
                 - topk_dev: Deviation from being a realistic cluster with respect to the entire fitted data.
-                - density_dev: Deviation from context centriod with respect to compactness. 
+                - density_dev: Deviation from context centriod with respect to compactness.
 
         """
 
@@ -219,25 +218,27 @@ class OutlierCluster(BaseEstimator, OutlierMixin, BaseModel):
         labels = self.get_cluster(docs)
         matched_nclust = len(np.unique(labels))
         base_k = top_k/2
-        
+
         nclust_dev = abs(base_k - matched_nclust)/base_k
 
         # Get the mean std of all the fitted clusters
-        # Assume the question is the centriod of the cluster and compare 
+        # Assume the question is the centriod of the cluster and compare
         # the mean deviation from the psuedo-centriod to the mean std of the fitted clusters
         index_dev = self.pipeline.avg_std_
-        centroid_dev  = np.mean(np.abs(docs - query.squeeze()))
+        centroid_dev = np.mean(np.abs(docs - query.squeeze()))
         topk_dev = centroid_dev/index_dev
 
         # Get the cosine distance from the retrived context centriod and the query
-        # Compare this distance in both compactness of the cluster and zscore 
+        # Compare this distance in both compactness of the cluster and zscore
         centroid = docs.mean(axis=0)
 
         cent_dist = np.abs(cdist([centroid], docs, metric='cosine').flatten())
-        cent_q_diff = np.abs(cdist([centroid], [query.ravel()], metric='cosine').flatten())
-        
+        cent_q_diff = np.abs(
+            cdist([centroid], [query.ravel()], metric='cosine').flatten())
+
         dist_range = np.max(cent_dist) - np.min(cent_dist)
-        density_dev = cent_q_diff[0]/(2 * np.std(cent_dist)) * (1 - np.std(cent_dist)/dist_range)
+        density_dev = cent_q_diff[0]/(2 * np.std(cent_dist)) * \
+            (1 - np.std(cent_dist)/dist_range)
 
         return ClusterDecision(nclust_dev=nclust_dev, topk_dev=topk_dev, density_dev=density_dev)
 
@@ -253,7 +254,7 @@ class OutlierCluster(BaseEstimator, OutlierMixin, BaseModel):
         """
         check_is_fitted(self.pipeline)
         X = check_array(X, ensure_2d=True)
-        return self.pipeline.predict(X)    
+        return self.pipeline.predict(X)
 
     def _fetch_mlflow_run_id(self):
         run = ml.last_active_run()

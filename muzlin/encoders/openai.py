@@ -1,13 +1,13 @@
 import os
 from time import sleep
 from typing import Any, List, Optional, Union
-from pydantic.v1 import PrivateAttr
 
 import openai
+import tiktoken
 from openai import OpenAIError
 from openai._types import NotGiven
 from openai.types import CreateEmbeddingResponse
-import tiktoken
+from pydantic.v1 import PrivateAttr
 
 from muzlin.encoders import BaseEncoder
 from muzlin.schema import EncoderInfo
@@ -18,11 +18,11 @@ from muzlin.utils.logger import logger
 
 
 model_configs = {
-    "text-embedding-ada-002": EncoderInfo(
-        name="text-embedding-ada-002", token_limit=8192
+    'text-embedding-ada-002': EncoderInfo(
+        name='text-embedding-ada-002', token_limit=8192
     ),
-    "text-embed-3-small": EncoderInfo(name="text-embed-3-small", token_limit=8192),
-    "text-embed-3-large": EncoderInfo(name="text-embed-3-large", token_limit=8192),
+    'text-embed-3-small': EncoderInfo(name='text-embed-3-small', token_limit=8192),
+    'text-embed-3-large': EncoderInfo(name='text-embed-3-large', token_limit=8192),
 }
 
 
@@ -31,7 +31,7 @@ class OpenAIEncoder(BaseEncoder):
     dimensions: Union[int, NotGiven] = NotGiven()
     token_limit: int = 8192  # default value, should be replaced by config
     _token_encoder: Any = PrivateAttr()
-    type: str = "openai"
+    type: str = 'openai'
 
     def __init__(
         self,
@@ -43,11 +43,11 @@ class OpenAIEncoder(BaseEncoder):
         dimensions: Union[int, NotGiven] = NotGiven(),
     ):
         if name is None:
-            name = EncoderDefault.OPENAI.value["embedding_model"]
+            name = EncoderDefault.OPENAI.value['embedding_model']
         super().__init__(name=name, score_threshold=score_threshold)
-        api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
-        base_url = openai_base_url or os.getenv("OPENAI_BASE_URL")
-        openai_org_id = openai_org_id or os.getenv("OPENAI_ORG_ID")
+        api_key = openai_api_key or os.getenv('OPENAI_API_KEY')
+        base_url = openai_base_url or os.getenv('OPENAI_BASE_URL')
+        openai_org_id = openai_org_id or os.getenv('OPENAI_ORG_ID')
         if api_key is None:
             raise ValueError("OpenAI API key cannot be 'None'.")
         try:
@@ -73,11 +73,12 @@ class OpenAIEncoder(BaseEncoder):
         :param truncate: Whether to truncate the documents to token limit. If
             False and a document exceeds the token limit, an error will be
             raised.
-        :return: List of embeddings for each document."""
+        :return: List of embeddings for each document.
+        """
         if self.client is None:
-            raise ValueError("OpenAI client is not initialized.")
+            raise ValueError('OpenAI client is not initialized.')
         embeds = None
-        error_message = ""
+        error_message = ''
 
         if truncate:
             # check if any document exceeds token limit and truncate if so
@@ -119,9 +120,10 @@ class OpenAIEncoder(BaseEncoder):
         if len(tokens) > self.token_limit:
             logger.warning(
                 f"Document exceeds token limit: {len(tokens)} > {self.token_limit}"
-                "\nTruncating document..."
+                '\nTruncating document...'
             )
             text = self._token_encoder.decode(tokens[: self.token_limit - 1])
-            logger.info(f"Trunc length: {len(self._token_encoder.encode(text))}")
+            logger.info(
+                f"Trunc length: {len(self._token_encoder.encode(text))}")
             return text
         return text

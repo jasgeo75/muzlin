@@ -59,7 +59,7 @@ dependencies = [
     "torch",
     "transformers",
     "tokenizers",
-    "umap-learn", 
+    "umap-learn",
 ]
 
 
@@ -89,22 +89,22 @@ dev = [
     "sentence-transformers",
     "networkx",
     "pygod",
-    "torch_geometric", 
+    "torch_geometric",
     "torch_scatter",
     "torch_sparse",
     "torch_cluster",
     "torch_spline_conv",
-    
+
 ]
 
 graph = [
     "networkx",
     "pygod",
-    "torch_geometric", 
+    "torch_geometric",
     "torch_scatter",
     "torch_sparse",
     "torch_cluster",
-    "torch_spline_conv",    
+    "torch_spline_conv",
 ]
 
 notebook = [
@@ -118,8 +118,8 @@ notebook = [
     "plotly",
     "datasets",
     "pygod",
-    "torch_geometric", 
-    
+    "torch_geometric",
+
 ]
 
 # Tools settings -------------------------------------------------------------------------------------------------------
@@ -141,5 +141,4 @@ multi_line_output = 3
 
 [tool.ruff]
 fix = true
-exit_non_zero_on_fix = true
 line-length = 180

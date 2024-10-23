@@ -1,6 +1,6 @@
 import importlib.util
 import os
-from typing import List, Optional, Tuple, Type, Union, Any
+from typing import List, Optional, Tuple, Type, Union
 
 import joblib
 import networkx as nx
@@ -13,8 +13,8 @@ from pythresh.thresholds.base import BaseThresholder
 from sklearn.base import BaseEstimator, OutlierMixin, RegressorMixin
 from sklearn.metrics import r2_score
 from sklearn.pipeline import Pipeline
-from sklearn.utils.validation import check_is_fitted
 from sklearn.utils import check_array
+from sklearn.utils.validation import check_is_fitted
 from torch_geometric.utils import from_networkx
 
 from muzlin.utils.logger import logger
@@ -24,10 +24,11 @@ Ttype = torch_geometric.data.Data
 XType = Union[np.ndarray, List[List[Union[float, int]]]]
 is_mlflow = importlib.util.find_spec('mlflow')
 
+
 class GraphOutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
     r"""GraphOutlierDetector class for graph based anomaly detection.
 
-    Given a networkx graph the GraphOutlierDetector class can be 
+    Given a networkx graph the GraphOutlierDetector class can be
     used to fit an anomaly detection model and predict of new incoming data.
 
     Args:
@@ -38,7 +39,7 @@ class GraphOutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
             - Type float: The fraction of the fitted data that is outliers.
             - Type int: The percentile to set the threshold level e.g. 78 -> 78%, max is 100%.
             Defaults to None.
-        mlflow (bool, optional): To use mlflow experiment tracking during model fitting. Setting False will fit a pickle file of the fitted model in the local folder. Defaults to True. 
+        mlflow (bool, optional): To use mlflow experiment tracking during model fitting. Setting False will fit a pickle file of the fitted model in the local folder. Defaults to True.
         model (str, optional): Name of the graph outlier detctor model to load/save. Defaults to 'outlier_detector.pkl'.
         regression_model (str, optional): Name of the vector-graph regression model to load/save. Defaults to 'regressor.pkl'.
         random_state: (int, optional): The random seed for model fitting. Defaults to 1234.
@@ -47,7 +48,7 @@ class GraphOutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
         pipeline (object): The sklearn pipeline of the fitted model.
         decision_scores_ (array-like): The array of the fitted decision scores for the training data.
         threshold_ (float): The percentile used to threshold inliers from outliers in the model.
-        labels_ (array-like): The array of the fitted binary labels for the training data. 
+        labels_ (array-like): The array of the fitted binary labels for the training data.
         reg_R2_ (float): The R2 score of the fitted regression model on the training data.
 
     """
@@ -77,7 +78,7 @@ class GraphOutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
 
         self._check_is_initalized()
         if self.pipeline is not None:
-            return 
+            return
 
         if isinstance(self.contamination, int):
             self.contamination = min(self.contamination, 100)
@@ -85,17 +86,16 @@ class GraphOutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
         if self.detector is None:
 
             logger.info(
-                        "No graph outlier detector was provided defaulting to PyGOD AnomalyDAE detector."
+                'No graph outlier detector was provided defaulting to PyGOD AnomalyDAE detector.'
             )
             global AnomalyDAE
             from pygod.detector import AnomalyDAE
             self.detector = AnomalyDAE()
 
-
         if self.regressor is None:
 
             logger.info(
-                        "No regression model was provided defaulting to sklearn RidgeCV."
+                'No regression model was provided defaulting to sklearn RidgeCV.'
             )
             global RidgeCV
             from sklearn.linear_model import RidgeCV
@@ -104,7 +104,6 @@ class GraphOutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
         self.pipeline = Pipeline([
             ('detector', self.detector)
         ])
-                                 
 
     def fit(self, graph: Gtype, y=None):
         r"""Fit function of the OutlierDetector class.
@@ -124,8 +123,8 @@ class GraphOutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
                 import mlflow as ml
                 ml.autolog()
             else:
-                logger.info("MLFlow not installed, defaulting to joblib")
-                self.mflow = False  
+                logger.info('MLFlow not installed, defaulting to joblib')
+                self.mflow = False
 
         self.pipeline.fit(graph_torch)
 
@@ -142,14 +141,14 @@ class GraphOutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
         # Cater for different types of thresholding options
         if isinstance(self.contamination, BaseThresholder):
             lbls = self.contamination.eval(scores)
-            contam = len(lbls[lbls==0])/len(lbls)
+            contam = len(lbls[lbls == 0])/len(lbls)
         elif isinstance(self.contamination, int):
             contam /= 100
         else:
             contam = 1 - contam
 
-        self.threshold_ =  (np.percentile(scores, contam*100) if 
-                            contam <= 1.0 else contam * np.max(scores))
+        self.threshold_ = (np.percentile(scores, contam*100) if
+                           contam <= 1.0 else contam * np.max(scores))
 
         labels = (scores > self.threshold_).astype('int').ravel()
 
@@ -160,7 +159,7 @@ class GraphOutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
         # Relog model to save attr
         if self.mlflow:
             run_id = self._fetch_mlflow_run_id()
-            with ml.start_run(run_id=run_id) as run:
+            with ml.start_run(run_id=run_id) as _:
                 ml.sklearn.log_model(self.pipeline, 'model')
                 ml.sklearn.log_model(self.regressor, 'regression_model')
                 ml.log_param('regressor', self.regressor)
@@ -181,7 +180,7 @@ class GraphOutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
             X (array-like): The vectors to predict their labels.
 
         Returns:
-            labels (array-like): The predicted binary labels. 
+            labels (array-like): The predicted binary labels.
 
         """
         check_is_fitted(self.regressor)
@@ -210,10 +209,11 @@ class GraphOutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
     def _preprocess_graph(self, graph: Gtype) -> Tuple[Ttype, XType]:
 
         # Check no orphaned nodes
-        nodes_and_indices = [(index, node) for index, (node, degree) in 
+        nodes_and_indices = [(index, node) for index, (node, degree) in
                              enumerate(dict(graph.degree()).items()) if degree == 0]
 
-        indices, nodes_to_remove = zip(*nodes_and_indices) if nodes_and_indices else ([], [])
+        indices, nodes_to_remove = zip(
+            *nodes_and_indices) if nodes_and_indices else ([], [])
 
         graph.remove_nodes_from(nodes_to_remove)
 
@@ -226,7 +226,8 @@ class GraphOutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
                 graph.nodes[node]['x'] = x
                 vectors.append(x)
             else:
-                raise ValueError(f"Node {node} does not have the 'x' attribute.")
+                raise ValueError(
+                    f"Node {node} does not have the 'x' attribute.")
 
         graph_torch = from_networkx(graph)
 
@@ -251,11 +252,12 @@ class GraphOutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
             self.regressor = joblib.load(self.regressor_model)
         elif self.pipeline is None:
             return
-            
+
         check_is_fitted(self.pipeline)
         check_is_fitted(self.regressor)
 
         self.threshold_ = self.pipeline.threshold_
         self.labels_ = self.pipeline.labels_
-        self.decision_scores_ = self.pipeline.named_steps['detector'].decision_score_.numpy()
+        self.decision_scores_ = self.pipeline.named_steps['detector'].decision_score_.numpy(
+        )
         self.reg_R2_ = self.regressor.reg_R2_

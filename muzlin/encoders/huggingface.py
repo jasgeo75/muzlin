@@ -1,9 +1,8 @@
-
-import requests
-import time
 import os
+import time
 from typing import Any, List, Optional
 
+import requests
 from pydantic.v1 import PrivateAttr
 
 from muzlin.encoders import BaseEncoder
@@ -13,8 +12,8 @@ from muzlin.utils.logger import logger
 
 
 class HuggingFaceEncoder(BaseEncoder):
-    name: str = "BAAI/bge-small-en-v1.5"
-    type: str = "huggingface"
+    name: str = 'BAAI/bge-small-en-v1.5'
+    type: str = 'huggingface'
     score_threshold: float = 0.5
     tokenizer_kwargs: dict = {}
     model_kwargs: dict = {}
@@ -32,14 +31,14 @@ class HuggingFaceEncoder(BaseEncoder):
             from transformers import AutoModel, AutoTokenizer
         except ImportError:
             raise ImportError(
-                "Please install transformers to use HuggingFaceEncoder."
+                'Please install transformers to use HuggingFaceEncoder.'
             )
 
         try:
             import torch
         except ImportError:
             raise ImportError(
-                "Please install Pytorch to use HuggingFaceEncoder."
+                'Please install Pytorch to use HuggingFaceEncoder.'
             )
 
         self._torch = torch
@@ -55,7 +54,7 @@ class HuggingFaceEncoder(BaseEncoder):
             model.to(self.device)
 
         else:
-            device = "cuda" if self._torch.cuda.is_available() else "cpu"
+            device = 'cuda' if self._torch.cuda.is_available() else 'cpu'
             model.to(device)
             self.device = device
 
@@ -66,26 +65,26 @@ class HuggingFaceEncoder(BaseEncoder):
         docs: List[str],
         batch_size: int = 32,
         normalize_embeddings: bool = True,
-        pooling_strategy: str = "mean",
+        pooling_strategy: str = 'mean',
     ) -> List[List[float]]:
         all_embeddings = []
         for i in range(0, len(docs), batch_size):
-            batch_docs = docs[i : i + batch_size]
+            batch_docs = docs[i: i + batch_size]
 
             encoded_input = self._tokenizer(
-                batch_docs, padding=True, truncation=True, return_tensors="pt"
+                batch_docs, padding=True, truncation=True, return_tensors='pt'
             ).to(self.device)
 
             with self._torch.no_grad():
                 model_output = self._model(**encoded_input)
 
-            if pooling_strategy == "mean":
+            if pooling_strategy == 'mean':
                 embeddings = self._mean_pooling(
-                    model_output, encoded_input["attention_mask"]
+                    model_output, encoded_input['attention_mask']
                 )
-            elif pooling_strategy == "max":
+            elif pooling_strategy == 'max':
                 embeddings = self._max_pooling(
-                    model_output, encoded_input["attention_mask"]
+                    model_output, encoded_input['attention_mask']
                 )
             else:
                 raise ValueError(
@@ -93,7 +92,8 @@ class HuggingFaceEncoder(BaseEncoder):
                 )
 
             if normalize_embeddings:
-                embeddings = self._torch.nn.functional.normalize(embeddings, p=2, dim=1)
+                embeddings = self._torch.nn.functional.normalize(
+                    embeddings, p=2, dim=1)
 
             embeddings = embeddings.tolist()
             all_embeddings.extend(embeddings)
@@ -102,7 +102,8 @@ class HuggingFaceEncoder(BaseEncoder):
     def _mean_pooling(self, model_output, attention_mask):
         token_embeddings = model_output[0]
         input_mask_expanded = (
-            attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+            attention_mask.unsqueeze(-1).expand(
+                token_embeddings.size()).float()
         )
         return self._torch.sum(
             token_embeddings * input_mask_expanded, 1
@@ -111,7 +112,8 @@ class HuggingFaceEncoder(BaseEncoder):
     def _max_pooling(self, model_output, attention_mask):
         token_embeddings = model_output[0]
         input_mask_expanded = (
-            attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+            attention_mask.unsqueeze(-1).expand(
+                token_embeddings.size()).float()
         )
         token_embeddings[input_mask_expanded == 0] = -1e9
         return self._torch.max(token_embeddings, 1)[0]
@@ -127,14 +129,14 @@ class HFEndpointEncoder(BaseEncoder):
         score_threshold (float): A threshold value used for filtering or processing the embeddings.
     """
 
-    name: str = "hugging_face_custom_endpoint"
+    name: str = 'hugging_face_custom_endpoint'
     huggingface_url: Optional[str] = None
     huggingface_api_key: Optional[str] = None
     score_threshold: float = 0.8
 
     def __init__(
         self,
-        name: Optional[str] = "hugging_face_custom_endpoint",
+        name: Optional[str] = 'hugging_face_custom_endpoint',
         huggingface_url: Optional[str] = None,
         huggingface_api_key: Optional[str] = None,
         score_threshold: float = 0.8,
@@ -155,8 +157,8 @@ class HFEndpointEncoder(BaseEncoder):
         Raises:
             ValueError: If either `huggingface_url` or `huggingface_api_key` is None.
         """
-        huggingface_url = huggingface_url or os.getenv("HF_API_URL")
-        huggingface_api_key = huggingface_api_key or os.getenv("HF_API_KEY")
+        huggingface_url = huggingface_url or os.getenv('HF_API_URL')
+        huggingface_api_key = huggingface_api_key or os.getenv('HF_API_KEY')
 
         super().__init__(name=name, score_threshold=score_threshold)  # type: ignore
 
@@ -165,11 +167,12 @@ class HFEndpointEncoder(BaseEncoder):
         if huggingface_api_key is None:
             raise ValueError("HuggingFace API key cannot be 'None'.")
 
-        self.huggingface_url = huggingface_url or os.getenv("HF_API_URL")
-        self.huggingface_api_key = huggingface_api_key or os.getenv("HF_API_KEY")
+        self.huggingface_url = huggingface_url or os.getenv('HF_API_URL')
+        self.huggingface_api_key = huggingface_api_key or os.getenv(
+            'HF_API_KEY')
 
         try:
-            self.query({"inputs": "Hello World!", "parameters": {}})
+            self.query({'inputs': 'Hello World!', 'parameters': {}})
         except Exception as e:
             raise ValueError(
                 f"HuggingFace endpoint client failed to initialize. Error: {e}"
@@ -191,9 +194,9 @@ class HFEndpointEncoder(BaseEncoder):
         embeddings = []
         for d in docs:
             try:
-                output = self.query({"inputs": d, "parameters": {}})
+                output = self.query({'inputs': d, 'parameters': {}})
                 if not output or len(output) == 0:
-                    raise ValueError("No embeddings returned from the query.")
+                    raise ValueError('No embeddings returned from the query.')
                 embeddings.append(output)
 
             except Exception as e:
@@ -216,9 +219,9 @@ class HFEndpointEncoder(BaseEncoder):
             ValueError: If the query fails or the response status is not 200.
         """
         headers = {
-            "Accept": "application/json",
-            "Authorization": f"Bearer {self.huggingface_api_key}",
-            "Content-Type": "application/json",
+            'Accept': 'application/json',
+            'Authorization': f"Bearer {self.huggingface_api_key}",
+            'Content-Type': 'application/json',
         }
         for attempt in range(1, max_retries + 1):
             try:
@@ -229,7 +232,7 @@ class HFEndpointEncoder(BaseEncoder):
                     # timeout=timeout_seconds,
                 )
                 if response.status_code == 503:
-                    estimated_time = response.json().get("estimated_time", "")
+                    estimated_time = response.json().get('estimated_time', '')
                     if estimated_time:
                         logger.info(
                             f"Model Initializing wait for - {estimated_time:.2f}s "
@@ -241,7 +244,8 @@ class HFEndpointEncoder(BaseEncoder):
 
             except requests.exceptions.RequestException:
                 if attempt < max_retries - 1:
-                    logger.info(f"Retrying attempt: {attempt} for payload: {payload} ")
+                    logger.info(
+                        f"Retrying attempt: {attempt} for payload: {payload} ")
                     time.sleep(retry_interval)
                     retry_interval += attempt
                 else:

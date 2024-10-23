@@ -17,9 +17,10 @@ Classes:
 """
 
 import json
-from typing import List, Optional, Any
 import os
 from time import sleep
+from typing import Any, List, Optional
+
 import tiktoken
 
 from muzlin.encoders import BaseEncoder
@@ -31,8 +32,8 @@ from muzlin.utils.logger import logger
 
 class BedrockEncoder(BaseEncoder):
     client: Any = None
-    type: str = "bedrock"
-    input_type: Optional[str] = "search_query"
+    type: str = 'bedrock'
+    input_type: Optional[str] = 'search_query'
     name: str
     access_key_id: Optional[str] = None
     secret_access_key: Optional[str] = None
@@ -41,8 +42,8 @@ class BedrockEncoder(BaseEncoder):
 
     def __init__(
         self,
-        name: str = EncoderDefault.BEDROCK.value["embedding_model"],
-        input_type: Optional[str] = "search_query",
+        name: str = EncoderDefault.BEDROCK.value['embedding_model'],
+        input_type: Optional[str] = 'search_query',
         access_key_id: Optional[str] = None,
         secret_access_key: Optional[str] = None,
         session_token: Optional[str] = None,
@@ -71,13 +72,15 @@ class BedrockEncoder(BaseEncoder):
             ValueError: If the Bedrock Platform client fails to initialize.
         """
         super().__init__(name=name)
-        self.access_key_id = self.get_env_variable("AWS_ACCESS_KEY_ID", access_key_id)
+        self.access_key_id = self.get_env_variable(
+            'AWS_ACCESS_KEY_ID', access_key_id)
         self.secret_access_key = self.get_env_variable(
-            "AWS_SECRET_ACCESS_KEY", secret_access_key
+            'AWS_SECRET_ACCESS_KEY', secret_access_key
         )
-        self.session_token = self.get_env_variable("AWS_SESSION_TOKEN", session_token)
+        self.session_token = self.get_env_variable(
+            'AWS_SESSION_TOKEN', session_token)
         self.region = self.get_env_variable(
-            "AWS_DEFAULT_REGION", region, default="us-west-1"
+            'AWS_DEFAULT_REGION', region, default='us-west-1'
         )
         self.input_type = input_type
         try:
@@ -88,7 +91,8 @@ class BedrockEncoder(BaseEncoder):
                 self.region,
             )
         except Exception as e:
-            raise ValueError(f"Bedrock client failed to initialise. Error: {e}") from e
+            raise ValueError(
+                f"Bedrock client failed to initialise. Error: {e}") from e
 
     def _initialize_client(
         self, access_key_id, secret_access_key, session_token, region
@@ -113,12 +117,13 @@ class BedrockEncoder(BaseEncoder):
         except ImportError:
             raise ImportError(
                 "Please install Amazon's Boto3 client library to use the BedrockEncoder. "
-                "You can install them with: "
-                "`pip install boto3`"
+                'You can install them with: '
+                '`pip install boto3`'
             )
-        access_key_id = access_key_id or os.getenv("AWS_ACCESS_KEY_ID")
-        aws_secret_key = secret_access_key or os.getenv("AWS_SECRET_ACCESS_KEY")
-        region = region or os.getenv("AWS_DEFAULT_REGION", "us-west-2")
+        access_key_id = access_key_id or os.getenv('AWS_ACCESS_KEY_ID')
+        aws_secret_key = secret_access_key or os.getenv(
+            'AWS_SECRET_ACCESS_KEY')
+        region = region or os.getenv('AWS_DEFAULT_REGION', 'us-west-2')
         if access_key_id is None:
             raise ValueError("AWS access key ID cannot be 'None'.")
         if aws_secret_key is None:
@@ -130,7 +135,7 @@ class BedrockEncoder(BaseEncoder):
         )
         try:
             bedrock_client = session.client(
-                "bedrock-runtime",
+                'bedrock-runtime',
                 region_name=region,
             )
         except Exception as err:
@@ -158,56 +163,56 @@ class BedrockEncoder(BaseEncoder):
         except ImportError:
             raise ImportError(
                 "Please install Amazon's Botocore client library to use the BedrockEncoder. "
-                "You can install them with: "
-                "`pip install botocore`"
+                'You can install them with: '
+                '`pip install botocore`'
             )
         if self.client is None:
-            raise ValueError("Bedrock client is not initialised.")
+            raise ValueError('Bedrock client is not initialised.')
         max_attempts = 3
         for attempt in range(max_attempts):
             try:
                 embeddings = []
-                if self.name and "amazon" in self.name:
+                if self.name and 'amazon' in self.name:
                     for doc in docs:
                         embedding_body = json.dumps(
                             {
-                                "inputText": doc,
+                                'inputText': doc,
                             }
                         )
                         response = self.client.invoke_model(
                             body=embedding_body,
                             modelId=self.name,
-                            accept="application/json",
-                            contentType="application/json",
+                            accept='application/json',
+                            contentType='application/json',
                         )
-                        response_body = json.loads(response.get("body").read())
-                        embeddings.append(response_body.get("embedding"))
-                elif self.name and "cohere" in self.name:
+                        response_body = json.loads(response.get('body').read())
+                        embeddings.append(response_body.get('embedding'))
+                elif self.name and 'cohere' in self.name:
                     chunked_docs = self.chunk_strings(docs)
                     for chunk in chunked_docs:
                         chunk = json.dumps(
-                            {"texts": chunk, "input_type": self.input_type}
+                            {'texts': chunk, 'input_type': self.input_type}
                         )
                         response = self.client.invoke_model(
                             body=chunk,
                             modelId=self.name,
-                            accept="*/*",
-                            contentType="application/json",
+                            accept='*/*',
+                            contentType='application/json',
                         )
-                        response_body = json.loads(response.get("body").read())
-                        chunk_embeddings = response_body.get("embeddings")
+                        response_body = json.loads(response.get('body').read())
+                        chunk_embeddings = response_body.get('embeddings')
                         embeddings.extend(chunk_embeddings)
                 else:
-                    raise ValueError("Unknown model name")
+                    raise ValueError('Unknown model name')
                 return embeddings
             except ClientError as error:
                 if attempt < max_attempts - 1:
-                    if error.response["Error"]["Code"] == "ExpiredTokenException":
+                    if error.response['Error']['Code'] == 'ExpiredTokenException':
                         logger.warning(
-                            "Session token has expired. Retrying initialisation."
+                            'Session token has expired. Retrying initialisation.'
                         )
                         try:
-                            self.session_token = os.getenv("AWS_SESSION_TOKEN")
+                            self.session_token = os.getenv('AWS_SESSION_TOKEN')
                             self.client = self._initialize_client(
                                 self.access_key_id,
                                 self.secret_access_key,
@@ -225,7 +230,7 @@ class BedrockEncoder(BaseEncoder):
                 ) from error
             except Exception as e:
                 raise ValueError(f"Bedrock call failed. Error: {e}") from e
-        raise ValueError("Bedrock call failed to return embeddings.")
+        raise ValueError('Bedrock call failed to return embeddings.')
 
     def chunk_strings(self, strings, MAX_WORDS=20):
         """
@@ -238,12 +243,12 @@ class BedrockEncoder(BaseEncoder):
         Returns:
             list: A list of lists, where each inner list contains a chunk of strings.
         """
-        encoding = tiktoken.get_encoding("cl100k_base")
+        encoding = tiktoken.get_encoding('cl100k_base')
         chunked_strings = []
         for text in strings:
             encoded_text = encoding.encode(text)
             chunks = [
-                encoding.decode(encoded_text[i : i + MAX_WORDS])
+                encoding.decode(encoded_text[i: i + MAX_WORDS])
                 for i in range(0, len(encoded_text), MAX_WORDS)
             ]
             chunked_strings.append(chunks)
@@ -269,7 +274,7 @@ class BedrockEncoder(BaseEncoder):
             return provided_value
         value = os.getenv(var_name, default)
         if value is None:
-            if var_name == "AWS_SESSION_TOKEN":
+            if var_name == 'AWS_SESSION_TOKEN':
                 return None
             raise ValueError(f"No {var_name} provided")
         return value

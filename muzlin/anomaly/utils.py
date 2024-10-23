@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional, Tuple, Union
+from typing import Literal, Optional, Tuple, Union
 
 import numpy as np
 from scipy.optimize import basinhopping
@@ -10,22 +10,20 @@ from sklearn.utils import check_array
 def negative_mcc_threshold(threshold: Union[int, float],
                            scores: Union[np.ndarray, list],
                            labels: Union[np.ndarray, list],) -> float:
-    """
-    Caculate the coresponding MCC score
-    """
+    """Caculate the coresponding MCC score."""
 
     pred = np.zeros(len(scores), dtype=int)
     pred[scores >= threshold] = 1
-    
+
     return -(matthews_corrcoef(labels, pred) + 1)
 
 
 def optimize_threshold(fit_scores: Union[np.ndarray, list],
                        eval_scores: Union[np.ndarray, list],
                        labels: Union[np.ndarray, list],
-                       policy: Optional[Literal['balanced', 'hard', 'soft']] = 'balanced',
-                      ) -> Tuple[float, float]:
-
+                       policy: Optional[Literal['balanced',
+                                                'hard', 'soft']] = 'balanced',
+                       ) -> Tuple[float, float]:
     r"""Find the optimal threshold for the fitted OutlierDetector class.
 
     Given even a set of labeled data the optimize_threshold can be used to find the
@@ -37,7 +35,7 @@ def optimize_threshold(fit_scores: Union[np.ndarray, list],
         eval_scores (array-like): The array of the evaluated decsion scores  from the labeled data using the OutlierDetector class.
         labels (array-like): The array of the binary labels for the threshold optimization.
         policy (str, optional): Policy type that dictates the handling of the optimization. It can be one of the following:
-            - 'balanced': Uses a balanced approach by maximizing the Matthews Correlation Coefficient 
+            - 'balanced': Uses a balanced approach by maximizing the Matthews Correlation Coefficient
             - 'hard': Uses a strict approach by setting the threshold as the minimum between the max inlier or min outlier score
             - 'soft': Uses a lenient approach by setting the threshold as the maximum between the max inlier or min outlier score
             Defaults to 'balanced'.
@@ -54,16 +52,16 @@ def optimize_threshold(fit_scores: Union[np.ndarray, list],
     eval_scores = check_array(eval_scores, ensure_2d=False)
     labels = check_array(labels, ensure_2d=False)
 
-    min_out = np.min(eval_scores[labels==1])
-    max_in = np.max(eval_scores[labels==0])
+    min_out = np.min(eval_scores[labels == 1])
+    max_in = np.max(eval_scores[labels == 0])
 
     fit_max = np.max(fit_scores)
 
-    if policy=='hard':
+    if policy == 'hard':
 
         best_thresh = min(min_out, max_in)
 
-    elif policy=='soft':
+    elif policy == 'soft':
 
         best_thresh = max(min_out, max_in)
 
@@ -78,18 +76,16 @@ def optimize_threshold(fit_scores: Union[np.ndarray, list],
                             'bounds': [(fit_median, 2*fit_max)]}
 
         result = basinhopping(negative_mcc_threshold, niter=200,
-                            x0=fit_mean + fit_std,
-                            minimizer_kwargs=minimizer_kwargs,
-                            stepsize=fit_std, seed=1234)
+                              x0=fit_mean + fit_std,
+                              minimizer_kwargs=minimizer_kwargs,
+                              stepsize=fit_std, seed=1234)
 
         best_thresh = result.x[0]
 
-    if best_thresh>fit_max:
+    if best_thresh > fit_max:
         perc = best_thresh/fit_max * 100
 
     else:
         perc = percentileofscore(fit_scores, best_thresh, kind='rank')
 
     return best_thresh, perc
-
-

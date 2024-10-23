@@ -1,11 +1,11 @@
-from asyncio import sleep as asleep
 import os
+from asyncio import sleep as asleep
 from time import sleep
 from typing import List, Optional, Union
 
 import openai
-from openai._types import NotGiven
 from openai import OpenAIError
+from openai._types import NotGiven
 from openai.types import CreateEmbeddingResponse
 
 from muzlin.encoders import BaseEncoder
@@ -19,7 +19,7 @@ class AzureOpenAIEncoder(BaseEncoder):
     client: Optional[openai.AzureOpenAI] = None
     async_client: Optional[openai.AsyncAzureOpenAI] = None
     dimensions: Union[int, NotGiven] = NotGiven()
-    type: str = "azure"
+    type: str = 'azure'
     api_key: Optional[str] = None
     deployment_name: Optional[str] = None
     azure_endpoint: Optional[str] = None
@@ -40,7 +40,7 @@ class AzureOpenAIEncoder(BaseEncoder):
     ):
         name = deployment_name
         if name is None:
-            name = EncoderDefault.AZURE.value["embedding_model"]
+            name = EncoderDefault.AZURE.value['embedding_model']
         super().__init__(name=name, score_threshold=score_threshold)
         self.api_key = api_key
         self.deployment_name = deployment_name
@@ -50,26 +50,26 @@ class AzureOpenAIEncoder(BaseEncoder):
         # set dimensions to support openai embed 3 dimensions param
         self.dimensions = dimensions
         if self.api_key is None:
-            self.api_key = os.getenv("AZURE_OPENAI_API_KEY")
+            self.api_key = os.getenv('AZURE_OPENAI_API_KEY')
             if self.api_key is None:
-                raise ValueError("No Azure OpenAI API key provided.")
+                raise ValueError('No Azure OpenAI API key provided.')
         if max_retries is not None:
             self.max_retries = max_retries
         if self.deployment_name is None:
-            self.deployment_name = EncoderDefault.AZURE.value["deployment_name"]
+            self.deployment_name = EncoderDefault.AZURE.value['deployment_name']
         # deployment_name may still be None, but it is optional in the API
         if self.azure_endpoint is None:
-            self.azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+            self.azure_endpoint = os.getenv('AZURE_OPENAI_ENDPOINT')
             if self.azure_endpoint is None:
-                raise ValueError("No Azure OpenAI endpoint provided.")
+                raise ValueError('No Azure OpenAI endpoint provided.')
         if self.api_version is None:
-            self.api_version = os.getenv("AZURE_OPENAI_API_VERSION")
+            self.api_version = os.getenv('AZURE_OPENAI_API_VERSION')
             if self.api_version is None:
-                raise ValueError("No Azure OpenAI API version provided.")
+                raise ValueError('No Azure OpenAI API version provided.')
         if self.model is None:
-            self.model = os.getenv("AZURE_OPENAI_MODEL")
+            self.model = os.getenv('AZURE_OPENAI_MODEL')
             if self.model is None:
-                raise ValueError("No Azure OpenAI model provided.")
+                raise ValueError('No Azure OpenAI model provided.')
         assert (
             self.api_key is not None
             and self.azure_endpoint is not None
@@ -101,7 +101,7 @@ class AzureOpenAIEncoder(BaseEncoder):
 
     def __call__(self, docs: List[str]) -> List[List[float]]:
         if self.client is None:
-            raise ValueError("Azure OpenAI client is not initialized.")
+            raise ValueError('Azure OpenAI client is not initialized.')
         embeds = None
 
         # Exponential backoff
@@ -115,7 +115,7 @@ class AzureOpenAIEncoder(BaseEncoder):
                 if embeds.data:
                     break
             except OpenAIError as e:
-                logger.error("Exception occurred", exc_info=True)
+                logger.error('Exception occurred', exc_info=True)
                 if self.max_retries != 0 and j < self.max_retries:
                     sleep(2**j)
                     logger.warning(
@@ -125,21 +125,22 @@ class AzureOpenAIEncoder(BaseEncoder):
                     raise
             except Exception as e:
                 logger.error(f"Azure OpenAI API call failed. Error: {e}")
-                raise ValueError(f"Azure OpenAI API call failed. Error: {e}") from e
+                raise ValueError(
+                    f"Azure OpenAI API call failed. Error: {e}") from e
 
         if (
             not embeds
             or not isinstance(embeds, CreateEmbeddingResponse)
             or not embeds.data
         ):
-            raise ValueError("No embeddings returned.")
+            raise ValueError('No embeddings returned.')
 
         embeddings = [embeds_obj.embedding for embeds_obj in embeds.data]
         return embeddings
 
     async def acall(self, docs: List[str]) -> List[List[float]]:
         if self.async_client is None:
-            raise ValueError("Azure OpenAI async client is not initialized.")
+            raise ValueError('Azure OpenAI async client is not initialized.')
         embeds = None
 
         # Exponential backoff
@@ -154,7 +155,7 @@ class AzureOpenAIEncoder(BaseEncoder):
                     break
 
             except OpenAIError as e:
-                logger.error("Exception occurred", exc_info=True)
+                logger.error('Exception occurred', exc_info=True)
                 if self.max_retries != 0 and j < self.max_retries:
                     await asleep(2**j)
                     logger.warning(
@@ -164,14 +165,15 @@ class AzureOpenAIEncoder(BaseEncoder):
                     raise
             except Exception as e:
                 logger.error(f"Azure OpenAI API call failed. Error: {e}")
-                raise ValueError(f"Azure OpenAI API call failed. Error: {e}") from e
+                raise ValueError(
+                    f"Azure OpenAI API call failed. Error: {e}") from e
 
         if (
             not embeds
             or not isinstance(embeds, CreateEmbeddingResponse)
             or not embeds.data
         ):
-            raise ValueError("No embeddings returned.")
+            raise ValueError('No embeddings returned.')
 
         embeddings = [embeds_obj.embedding for embeds_obj in embeds.data]
         return embeddings

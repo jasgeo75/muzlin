@@ -9,8 +9,8 @@ from muzlin.encoders import BaseEncoder
 
 
 class FastEmbedEncoder(BaseEncoder):
-    type: str = "fastembed"
-    name: str = "BAAI/bge-small-en-v1.5"
+    type: str = 'fastembed'
+    name: str = 'BAAI/bge-small-en-v1.5'
     max_length: int = 512
     cache_dir: Optional[str] = None
     threads: Optional[int] = None
@@ -27,19 +27,20 @@ class FastEmbedEncoder(BaseEncoder):
             from fastembed import TextEmbedding
         except ImportError:
             raise ImportError(
-                "Please install fastembed to use FastEmbedEncoder. "
-                "You can install it with: "
+                'Please install fastembed to use FastEmbedEncoder. '
+                'You can install it with: '
                 "`pip install 'muzlin[fastembed]'`"
             )
 
         embedding_args = {
-            "model_name": self.name,
-            "max_length": self.max_length,
-            "cache_dir": self.cache_dir,
-            "threads": self.threads,
+            'model_name': self.name,
+            'max_length': self.max_length,
+            'cache_dir': self.cache_dir,
+            'threads': self.threads,
         }
 
-        embedding_args = {k: v for k, v in embedding_args.items() if v is not None}
+        embedding_args = {k: v for k,
+                          v in embedding_args.items() if v is not None}
 
         embedding = TextEmbedding(**embedding_args)
         return embedding

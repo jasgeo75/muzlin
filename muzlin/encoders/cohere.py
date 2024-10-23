@@ -8,27 +8,28 @@ from muzlin.utils.defaults import EncoderDefault
 
 # Code adapted from https://github.com/aurelio-labs/semantic-router/blob/main/semantic_router/encoders/cohere.py
 
+
 class CohereEncoder(BaseEncoder):
     client: Optional[cohere.Client] = None
-    type: str = "cohere"
-    input_type: Optional[str] = "search_query"
+    type: str = 'cohere'
+    input_type: Optional[str] = 'search_query'
 
     def __init__(
         self,
         name: Optional[str] = None,
         cohere_api_key: Optional[str] = None,
         score_threshold: float = 0.3,
-        input_type: Optional[str] = "search_query",
+        input_type: Optional[str] = 'search_query',
     ):
         if name is None:
-            name = EncoderDefault.COHERE.value["embedding_model"]
+            name = EncoderDefault.COHERE.value['embedding_model']
         super().__init__(
             name=name,
             score_threshold=score_threshold,
             input_type=input_type,  # type: ignore
         )
         self.input_type = input_type
-        cohere_api_key = cohere_api_key or os.getenv("COHERE_API_KEY")
+        cohere_api_key = cohere_api_key or os.getenv('COHERE_API_KEY')
         if cohere_api_key is None:
             raise ValueError("Cohere API key cannot be 'None'.")
         try:
@@ -40,7 +41,7 @@ class CohereEncoder(BaseEncoder):
 
     def __call__(self, docs: List[str]) -> List[List[float]]:
         if self.client is None:
-            raise ValueError("Cohere client is not initialized.")
+            raise ValueError('Cohere client is not initialized.')
         try:
             embeds = self.client.embed(
                 docs, input_type=self.input_type, model=self.name

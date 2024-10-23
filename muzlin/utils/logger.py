@@ -8,17 +8,17 @@ import colorlog
 class CustomFormatter(colorlog.ColoredFormatter):
     def __init__(self):
         super().__init__(
-            "%(log_color)s%(asctime)s %(levelname)s %(name)s %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
+            '%(log_color)s%(asctime)s %(levelname)s %(name)s %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S',
             log_colors={
-                "DEBUG": "cyan",
-                "INFO": "green",
-                "WARNING": "yellow",
-                "ERROR": "red",
-                "CRITICAL": "bold_red",
+                'DEBUG': 'cyan',
+                'INFO': 'green',
+                'WARNING': 'yellow',
+                'ERROR': 'red',
+                'CRITICAL': 'bold_red',
             },
             reset=True,
-            style="%",
+            style='%',
         )
 
 

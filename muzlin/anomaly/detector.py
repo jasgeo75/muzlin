@@ -1,6 +1,6 @@
 import importlib.util
 import os
-from typing import List, Optional, Type, Union, Any
+from typing import List, Optional, Type, Union
 
 import joblib
 import numpy as np
@@ -10,18 +10,19 @@ from pythresh.thresholds.base import BaseThresholder
 from sklearn.base import BaseEstimator, ClassifierMixin, OutlierMixin
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.utils.validation import check_is_fitted
 from sklearn.utils import check_array
+from sklearn.utils.validation import check_is_fitted
 
 from muzlin.utils.logger import logger
 
 XType = Union[np.ndarray, List[List[Union[float, int]]]]
 is_mlflow = importlib.util.find_spec('mlflow')
 
+
 class OutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
     r"""OutlierDetector class for vector based anomaly detection.
 
-    Given a set of embedded vectors the OutlierDetector class can be 
+    Given a set of embedded vectors the OutlierDetector class can be
     used to fit an anomaly detection model and predict of new incoming data.
 
     Args:
@@ -31,7 +32,7 @@ class OutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
             - Type float: The fraction of the fitted data that is outliers.
             - Type int: The percentile to set the threshold level e.g. 78 -> 78%, 120 -> 120%.
             Defaults to None.
-        mlflow (bool, optional): To use mlflow experiment tracking during model fitting. Setting False will fit a pickle file of the fitted model in the local folder. Defaults to True. 
+        mlflow (bool, optional): To use mlflow experiment tracking during model fitting. Setting False will fit a pickle file of the fitted model in the local folder. Defaults to True.
         model (str, optional): Name of the model to load/save. Defaults to 'outlier_detector.pkl'.
         random_state: (int, optional): The random seed for model fitting. Defaults to 1234.
 
@@ -39,7 +40,7 @@ class OutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
         pipeline (object): The sklearn pipeline of the fitted model.
         decision_scores_ (array-like): The array of the fitted decision scores for the training data.
         threshold_ (float): The percentile used to threshold inliers from outliers in the model.
-        labels_ (array-like): The array of the fitted binary labels for the training data. 
+        labels_ (array-like): The array of the fitted binary labels for the training data.
 
     """
 
@@ -64,22 +65,22 @@ class OutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
 
         self._check_is_initalized()
         if self.pipeline is not None:
-            return 
+            return
 
         if self.detector is None:
 
             logger.info(
-                        "No outlier detector was provided defaulting to PyOD PCA detector."
+                'No outlier detector was provided defaulting to PyOD PCA detector.'
             )
             global PCA
             from pyod.models.pca import PCA
-            self.detector = PCA(contamination=0.1, random_state=self.random_state)
+            self.detector = PCA(contamination=0.1,
+                                random_state=self.random_state)
 
         self.pipeline = Pipeline([
             ('scaler', StandardScaler()),
             ('detector', self.detector)
         ])
-                                 
 
     def fit(self, X: XType, y: Optional[Union[np.ndarray, list, None]] = None):
         r"""Fit function of the OutlierDetector class.
@@ -97,14 +98,14 @@ class OutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
                 import mlflow as ml
                 ml.autolog()
             else:
-                logger.info("MLFlow not installed, defaulting to joblib")
-                self.mflow = False  
+                logger.info('MLFlow not installed, defaulting to joblib')
+                self.mflow = False
 
         X = check_array(X, ensure_2d=True)
-        y = check_array(y, ensure_2d=False) if y is not None else y 
+        y = check_array(y, ensure_2d=False) if y is not None else y
 
         if (not np.all(np.isin(y, [0, 1]))) & (y is not None):
-            raise ValueError("y should only contain binary values 0 or 1.")
+            raise ValueError('y should only contain binary values 0 or 1.')
 
         # Log training data deviation for future use
         self.pipeline.named_steps['detector'].Xstd_ = np.std(X)
@@ -114,11 +115,12 @@ class OutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
         # Cater for supervised method
         if isinstance(self.pipeline.named_steps['detector'], ClassifierMixin):
 
-            scores = self.pipeline.predict_proba(X) 
-            setattr(self.pipeline.named_steps['detector'], 'decision_scores_', scores)
+            scores = self.pipeline.predict_proba(X)
+            setattr(
+                self.pipeline.named_steps['detector'], 'decision_scores_', scores)
 
-
-        labels = self.pipeline.predict(X) if y is not None else self.pipeline.named_steps['detector'].labels_
+        labels = self.pipeline.predict(
+            X) if y is not None else self.pipeline.named_steps['detector'].labels_
 
         # Cater for different types of thresholding options
         if (self.contamination is not None) & (y is not None):
@@ -128,14 +130,14 @@ class OutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
 
             if isinstance(self.contamination, BaseThresholder):
                 lbls = self.contamination.eval(scores)
-                contam = len(lbls[lbls==0])/len(lbls)
+                contam = len(lbls[lbls == 0])/len(lbls)
             elif isinstance(self.contamination, int):
                 contam /= 100
             else:
                 contam = 1 - contam
 
-            self.threshold_ =  (np.percentile(scores, contam*100) if 
-                                contam <= 1.0 else contam * np.max(scores))
+            self.threshold_ = (np.percentile(scores, contam*100) if
+                               contam <= 1.0 else contam * np.max(scores))
 
             labels = (scores > self.threshold_).astype('int').ravel()
 
@@ -145,7 +147,7 @@ class OutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
         # Relog model to save attr
         if self.mlflow:
             run_id = self._fetch_mlflow_run_id()
-            with ml.start_run(run_id=run_id) as run:
+            with ml.start_run(run_id=run_id) as _:
                 ml.sklearn.log_model(self.pipeline, 'model')
 
         if not self.mlflow:
@@ -162,7 +164,7 @@ class OutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
             X (array-like): The vectors to predict their labels.
 
         Returns:
-            labels (array-like): The predicted binary labels. 
+            labels (array-like): The predicted binary labels.
 
         """
         check_is_fitted(self.pipeline)
@@ -200,7 +202,7 @@ class OutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
             self.pipeline = joblib.load(self.model)
         elif self.pipeline is None:
             return
-            
+
         check_is_fitted(self.pipeline)
 
         self.threshold_ = self.pipeline.threshold_
