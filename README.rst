@@ -4,6 +4,33 @@
 
 *When a filter cloth 🏳️ is needed rather than a simple RAG 🏴‍☠*
 
+**Deployment, Stats, & License**
+
+|badge_pypi| |badge_stars| |badge_downloads|
+|badge_versions| |badge_licence|
+
+.. |badge_pypi| image:: https://img.shields.io/pypi/v/muzlin.svg?color=brightgreen&logo=pypi&logoColor=white
+   :alt: PyPI version
+   :target: https://pypi.org/project/muzlin/
+
+.. |badge_stars| image:: https://img.shields.io/github/stars/KulikDM/muzlin.svg?logo=github&logoColor=white&style=flat
+   :alt: GitHub stars
+   :target: https://github.com/KulikDM/muzlin/stargazers
+
+.. |badge_downloads| image:: https://img.shields.io/badge/dynamic/xml?url=https%3A%2F%2Fstatic.pepy.tech%2Fbadge%2Fmuzlin&query=%2F%2F*%5Blocal-name()%20%3D%20%27text%27%5D%5Blast()%5D&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAyNCAyNDsiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDI0IDI0IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48ZyBpZD0iaW5mbyIvPjxnIGlkPSJpY29ucyI%2BPGcgaWQ9InNhdmUiPjxwYXRoIGQ9Ik0xMS4yLDE2LjZjMC40LDAuNSwxLjIsMC41LDEuNiwwbDYtNi4zQzE5LjMsOS44LDE4LjgsOSwxOCw5aC00YzAsMCwwLjItNC42LDAtN2MtMC4xLTEuMS0wLjktMi0yLTJjLTEuMSwwLTEuOSwwLjktMiwyICAgIGMtMC4yLDIuMywwLDcsMCw3SDZjLTAuOCwwLTEuMywwLjgtMC44LDEuNEwxMS4yLDE2LjZ6IiBmaWxsPSIjZWJlYmViIi8%2BPHBhdGggZD0iTTE5LDE5SDVjLTEuMSwwLTIsMC45LTIsMnYwYzAsMC42LDAuNCwxLDEsMWgxNmMwLjYsMCwxLTAuNCwxLTF2MEMyMSwxOS45LDIwLjEsMTksMTksMTl6IiBmaWxsPSIjZWJlYmViIi8%2BPC9nPjwvZz48L3N2Zz4%3D&label=downloads
+   :alt: Downloads
+   :target: https://pepy.tech/project/muzlin
+
+.. |badge_versions| image:: https://img.shields.io/pypi/pyversions/muzlin.svg?logo=python&logoColor=white
+   :alt: Python versions
+   :target: https://pypi.org/project/muzlin/
+
+.. |badge_licence| image:: https://img.shields.io/github/license/KulikDM/muzlin.svg?logo=data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjMyIiBpZD0iaWNvbiIgdmlld0JveD0iMCAwIDMyIDMyIiB3aWR0aD0iMzIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnMgZmlsbD0iI2ViZjJlZSI+PHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6IG5vbmU7CiAgICAgIH0KICAgIDwvc3R5bGU+PC9kZWZzPjxyZWN0IGhlaWdodD0iMiIgd2lkdGg9IjEyIiB4PSI4IiB5PSI2IiBmaWxsPSIjZWJmMmVlIi8+PHJlY3QgaGVpZ2h0PSIyIiB3aWR0aD0iMTIiIHg9IjgiIHk9IjEwIiBmaWxsPSIjZWJmMmVlIi8+PHJlY3QgaGVpZ2h0PSIyIiB3aWR0aD0iNiIgeD0iOCIgeT0iMTQiIGZpbGw9IiNlYmYyZWUiLz48cmVjdCBoZWlnaHQ9IjIiIHdpZHRoPSI0IiB4PSI4IiB5PSIyNCIgZmlsbD0iI2ViZjJlZSIvPjxwYXRoIGQ9Ik0yOS43MDcsMTkuMjkzbC0zLTNhLjk5OTQuOTk5NCwwLDAsMC0xLjQxNCwwTDE2LDI1LjU4NTlWMzBoNC40MTQxbDkuMjkyOS05LjI5M0EuOTk5NC45OTk0LDAsMCwwLDI5LjcwNywxOS4yOTNaTTE5LjU4NTksMjhIMThWMjYuNDE0MWw1LTVMMjQuNTg1OSwyM1pNMjYsMjEuNTg1OSwyNC40MTQxLDIwLDI2LDE4LjQxNDEsMjcuNTg1OSwyMFoiIGZpbGw9IiNlYmYyZWUiLz48cGF0aCBkPSJNMTIsMzBINmEyLjAwMjEsMi4wMDIxLDAsMCwxLTItMlY0QTIuMDAyMSwyLjAwMjEsMCwwLDEsNiwySDIyYTIuMDAyMSwyLjAwMjEsMCwwLDEsMiwyVjE0SDIyVjRINlYyOGg2WiIgZmlsbD0iI2ViZjJlZSIvPjxyZWN0IGNsYXNzPSJjbHMtMSIgZGF0YS1uYW1lPSImbHQ7VHJhbnNwYXJlbnQgUmVjdGFuZ2xlJmd0OyIgaGVpZ2h0PSIzMiIgaWQ9Il9UcmFuc3BhcmVudF9SZWN0YW5nbGVfIiB3aWR0aD0iMzIiIGZpbGw9IiNlYmYyZWUiLz48L3N2Zz4=
+   :alt: License
+   :target: https://github.com/KulikDM/muzlin/blob/master/LICENSE
+
+----
+
 *************
  What is it?
 *************
@@ -146,17 +173,17 @@ and Pydantic for validation.
 
 **Table of notebooks**
 
-+---------------------------+------------------------------------------------------------------------------------------------------+
-| Notebook                  | Description                                                                                          |
-+===========================+======================================================================================================+
-| Introduction              | Data prep and a simple semantic vector-based outlier detection model                                 |
-+---------------------------+------------------------------------------------------------------------------------------------------+
-| Optimal Threshold         | Methods for optimal threshold selection (unsupervised, semi-supervised, supervised)                  |
-+---------------------------+------------------------------------------------------------------------------------------------------+
-| Cluster-Based Filtering   | Using clustering to decide if retrieved documents can answer a user's question                       |
-+---------------------------+------------------------------------------------------------------------------------------------------+
-| Graph-Based Filtering     | Using graph based anomaly detection for filtering semantic graph-based systems (e.g. GraphRAG)       |
-+---------------------------+------------------------------------------------------------------------------------------------------+
++-------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
+| Notebook                                                                                                          | Description                                                                                          |
++===================================================================================================================+======================================================================================================+
+| `Introduction <https://github.com/KulikDM/muzlin/blob/main/examples/00_Introduction.ipynb>`_                      | Data prep and a simple semantic vector-based outlier detection model                                 |
++-------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
+| `Optimal Threshold <https://github.com/KulikDM/muzlin/blob/main/examples/01_Threshold_Optimization.ipynb>`_       | Methods for optimal threshold selection (unsupervised, semi-supervised, supervised)                  |
++-------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
+| `Cluster-Based Filtering <https://github.com/KulikDM/muzlin/blob/main/examples/02_Cluster_Filtering.ipynb>`_      | Using clustering to decide if retrieved documents can answer a user's question                       |
++-------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
+| `Graph-Based Filtering <https://github.com/KulikDM/muzlin/blob/main/examples/03_Graph_Filtering.ipynb>`_          | Using graph based anomaly detection for filtering semantic graph-based systems (e.g. GraphRAG)       |
++-------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
 
 ************
  What Else?
