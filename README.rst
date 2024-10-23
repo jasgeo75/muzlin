@@ -1,14 +1,8 @@
-.. |space| raw:: html
-
-   <br>
-
 ########
  Muzlin
 ########
 
 *When a filter cloth 🏳️ is needed rather than a simple RAG 🏴‍☠*
-
-|space|
 
 *************
  What is it?
@@ -212,5 +206,3 @@ Anyone is welcome to contribute to Muzlin:
 -  Please make sure that all code changes are accompanied with proper
    new/updated test functions. Automatic tests will be triggered. Before
    the pull request can be merged, make sure that all the tests pass.
-
-----
