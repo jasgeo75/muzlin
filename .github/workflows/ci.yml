@@ -30,7 +30,7 @@ jobs:
       run: |
         # curl -LsSf https://astral.sh/uv/install.sh | sh
         python -m pip install --upgrade pip wheel setuptools>=65.5.1 uv
-        uv pip install torch
+        uv pip install --system torch
         uv pip install --system -e '.[dev]' --no-build-isolation
     - name: Lint with flake8
       run: |
