@@ -6,8 +6,8 @@
 
 **Deployment, Stats, & License**
 
-|badge_pypi| |badge_stars| |badge_downloads|
-|badge_versions| |badge_licence|
+|badge_pypi| |badge_stars| |badge_downloads| |badge_versions|
+|badge_licence|
 
 .. |badge_pypi| image:: https://img.shields.io/pypi/v/muzlin.svg?color=brightgreen&logo=pypi&logoColor=white
    :alt: PyPI version
@@ -35,126 +35,87 @@
  What is it?
 *************
 
-Muzlin merges classical ML techniques with complex generative AI. It's
-goal is to apply simple, efficent, and effective methods for filtering
-many aspects of the generative text process train. These methods address
-the following questions:
+Muzlin merges classical ML with advanced generative AI to efficiently
+filter text in the context of NLP and LLMs. It answers key questions in
+semantic-based workflows, such as:
 
--  Does a RAG/GraphRAG have any context to answer the user's question?
+-  Does a RAG/GraphRAG have the right context to answer a question?
 
--  Does the retrieved context contain good candidates to provide a
-   complete answer (e.g. are the retrieved context too dense/sparse)?
+-  Is the topk retrieved context too dense/sparse?
 
--  Does the generated LLM response deviate from the provided context?
-   (Hallucination)
+-  Does the generated response hallucinate or deviate from the provided
+   context?
 
--  Given a collection of questions, should an extracted portion of text
-   be added to an existing RAG with respect to its ability to answer any
-   of the questions in the collection?
+-  Should new extracted text be added to an existing RAG?
 
--  Given an existing RAG, what is the probability that a new portion of
-   text belongs to the RAG cluster?
+-  Can we detect inliers and outliers in collections of text embeddings
+   (e.g. context, user question and answers, synthetic generated data,
+   etc...)?
 
--  Given a collection of embedded text (e.g. context, user question and
-   answers, synthetic generated data, etc...), what components are
-   considered inliers and outliers?
-
-Muzlin is dynamic and production ready and can be added as a
-decision-making layer for any LLM and agentic process flows.
-
-**Note** while Muzlin is production ready, it is still in a development
-phase and is subject to significant changes!
+**Note:** While production-ready, Muzlin is still evolving and subject
+to significant changes!
 
 ************
  Quickstart
 ************
 
-To get started use **pip** for installation:
+#. **Install** Muzlin using pip:
 
-.. code:: bash
+   .. code:: bash
 
-   pip install muzlin
+      pip install muzlin
 
-In order to compared text, we need to first create a base of
-information. To do this we need a collection of text embeddings:
+#. **Create text embeddings** with a pre-trained model:
 
-.. code:: python
+   .. code:: python
 
-   import numpy as np
-   from muzlin.encoders import HuggingFaceEncoder
+      import numpy as np
+      from muzlin.encoders import HuggingFaceEncoder
 
-   encoder = HuggingFaceEncoder()
+      encoder = HuggingFaceEncoder()
+      vectors = encoder(texts)  # texts is a list of strings
+      vectors = np.array(vectors)
+      np.save('vectors', vectors)
 
-   vectors = encoder(texts) # where texts is a list of str
-   vectors = np.array(vectors)
-   np.save('vectors', vectors)
+#. **Build an anomaly detection model** for filtering:
 
-Next we will construct an unsupervised anomaly detection model using the
-embedded vectors:
+   .. code:: python
 
-.. code:: python
+      from muzlin.anomaly import OutlierDetector
+      from pyod.models.pca import PCA
 
-   import mlflow as ml # optional
-   from muzlin.anomaly import OutlierDetector
-   from pyod.models.pca import PCA
+      vectors = np.load('vectors.npy')  # Load pre-saved vectors
 
-   # Read in vectors
-   vectors = np.load('vectors.npy')
+      od = PCA(contamination=0.02)
 
-   # Initialize OD and thresholding model
-   od = PCA(contamination=0.02)
+      clf = OutlierDetector(mlflow=False, detector=od) # Saves joblib moddel
+      clf.fit(vectors)
 
-   ml.set_experiment('outlier_model')
-   clf = OutlierDetector(mlflow=True, detector=od)
-   clf.fit(vectors)
-   ml.end_run()
+#. **Filter new text** using the trained model:
 
-This anomaly model can be either logged using mlflow or simply as a
-joblib file.
+   .. code:: python
 
-**Note** that a simpler encoder e.g. 384 dimesions leads to a "fuzzy"
-outlier detector that is generally less strict and increases the
-probability that new text and the embedded collection of text will have
-a closer similarity. Higher dimesion encoder models can be used for a
-dense embedded space e.g. over 2000 vectors or for strict settings e.g.
-Medicine, but note that embedding time increases as well. Also, small
-text collections <100 or collections with a wide range of topics may
-degrade the filtering capabilities
+      from muzlin.anomaly import OutlierDetector
+      from muzlin.encoders import HuggingFaceEncoder
+      import numpy as np
 
-Now that we have an anomaly model we can filter new incoming text. Here
-is an example for a RAG setting:
+      clf = OutlierDetector(model='outlier_detector.pkl')  # Load the model
+      encoder = HuggingFaceEncoder()
 
-.. code:: python
+      vector = encoder(['Who was the first man to walk on the moon?'])
+      vector = np.array(vector).reshape(1, -1)
 
-   from muzlin.anomaly import OutlierDetector
-   from muzlin.encoders import HuggingFaceEncoder
+      label = clf.predict(vector)
 
-   # Preload trained model - or load with joblib
-   clf = OutlierDetector(model='outlier_detector.pkl')
+**************
+ Integrations
+**************
 
-   # Encode question
-   encoder = HuggingFaceEncoder()
-
-   vector = encoder(['Who was the first man to walk on the moon?'])
-   vector = np.array(vector).reshape(1,-1) # Must be 2D
-
-   # Get a binary inlier 0 or outlier 1 output
-   label = clf.predict(vector)
-
-The example above is just a quick dive into the capabilities of Muzlin.
-Go check out the example notebooks for a more in depth tutorial on all
-the different kinds of methods and possible applications.
-
-***************
- Intergrations
-***************
-
-Muzlin supports the use of many libraries for both vector and graph
-based setups, and is fully intergrated with MLFlow for model tracking
-and Pydantic for validation.
+Muzlin integrates with a wide array of libraries for anomaly detection,
+vector encoding, and graph-based setups.
 
 +-----------------------------------+-------------------------+----------------------+
-| Anomaly detection                 | Encoders                | Vector Index         |
+| **Anomaly Detection**             | **Encoders**            | **Vector Index**     |
 +===================================+=========================+======================+
 | -  Scikit-Learn                   | -  HuggingFace          | -  LangChain         |
 | -  PyOD (vector)                  | -  OpenAI               | -  LlamaIndex        |
@@ -171,26 +132,25 @@ and Pydantic for validation.
  Resources
 ***********
 
-**Table of notebooks**
+**Example Notebooks**
 
-+-------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
-| Notebook                                                                                                          | Description                                                                                          |
-+===================================================================================================================+======================================================================================================+
-| `Introduction <https://github.com/KulikDM/muzlin/blob/main/examples/00_Introduction.ipynb>`_                      | Data prep and a simple semantic vector-based outlier detection model                                 |
-+-------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
-| `Optimal Threshold <https://github.com/KulikDM/muzlin/blob/main/examples/01_Threshold_Optimization.ipynb>`_       | Methods for optimal threshold selection (unsupervised, semi-supervised, supervised)                  |
-+-------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
-| `Cluster-Based Filtering <https://github.com/KulikDM/muzlin/blob/main/examples/02_Cluster_Filtering.ipynb>`_      | Using clustering to decide if retrieved documents can answer a user's question                       |
-+-------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
-| `Graph-Based Filtering <https://github.com/KulikDM/muzlin/blob/main/examples/03_Graph_Filtering.ipynb>`_          | Using graph based anomaly detection for filtering semantic graph-based systems (e.g. GraphRAG)       |
-+-------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
++-------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------+
+| Notebook                                                                                                          | Description                                                                 |
++===================================================================================================================+=============================================================================+
+| `Introduction <https://github.com/KulikDM/muzlin/blob/main/examples/00_Introduction.ipynb>`_                      | Basic semantic vector-based outlier detection                               |
++-------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------+
+| `Optimal Threshold <https://github.com/KulikDM/muzlin/blob/main/examples/01_Threshold_Optimization.ipynb>`_       | Selecting optimal thresholds using various methods                          |
++-------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------+
+| `Cluster-Based Filtering <https://github.com/KulikDM/muzlin/blob/main/examples/02_Cluster_Filtering.ipynb>`_      | Cluster-based filtering for question answering                              |
++-------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------+
+| `Graph-Based Filtering <https://github.com/KulikDM/muzlin/blob/main/examples/03_Graph_Filtering.ipynb>`_          | Using graph-based anomaly detection for semantic graphs like GraphRAG       |
++-------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------+
 
 ************
  What Else?
 ************
 
-Besides Muzlin there are also many other great libraries that can help
-to increase a generative AI process flow. Check out `Semantic Router
+Looking for more? Check out other useful libraries like `Semantic Router
 <https://github.com/aurelio-labs/semantic-router>`_, `CRAG
 <https://github.com/HuskyInSalt/CRAG>`_, and `Scikit-LLM
 <https://github.com/iryna-kondr/scikit-llm>`_
@@ -201,10 +161,10 @@ to increase a generative AI process flow. Check out `Semantic Router
  Contributing
 **************
 
-**Note** at the moment their are major changes being done and the
-structure of Muzlin is still being refined. For now, please leave a bug
-report and potential new code for any fixes or improvements. You will be
-added as a co-author if it is implemented.
+**Muzlin is still evolving!** At the moment their are major changes
+being done and the structure of Muzlin is still being refined. For now,
+please leave a bug report and potential new code for any fixes or
+improvements. You will be added as a co-author if it is implemented.
 
 Once this phase has been completed then ->
 
