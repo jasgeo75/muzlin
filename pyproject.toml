@@ -122,6 +122,10 @@ notebook = [
 
 ]
 
+[project.urls]
+Homepage = "https://github.com/KulikDM/muzlin"
+Repository = "https://github.com/KulikDM/muzlin"
+
 # Tools settings -------------------------------------------------------------------------------------------------------
 [tool.setuptools]  # configuration specific to the `setuptools` build backend.
 packages = { find = { where = ["."], include = ["muzlin", "muzlin.*"] } }

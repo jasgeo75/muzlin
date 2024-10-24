@@ -19,18 +19,14 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Publish to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      - name:  Build source and wheel distributions
         run: |
-          printf "Preparing to install dependancies\n"
-
-          python -m pip install --upgrade pip setuptools wheel twine build
+          python -m pip install --upgrade build twine
           python -m build
+          twine check --strict dist/*
 
-          printf "\nPackage created locally\n"
-
-          python -m twine upload dist/* -u $TWINE_USERNAME -p $TWINE_PASSWORD
-
-          printf "\nNew PyPi release created\n"
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1.10.3
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
