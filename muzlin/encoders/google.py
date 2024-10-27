@@ -21,7 +21,6 @@ class GoogleEncoder(BaseEncoder):
     def __init__(
         self,
         name: Optional[str] = None,
-        score_threshold: float = 0.75,
         project_id: Optional[str] = None,
         location: Optional[str] = None,
         api_endpoint: Optional[str] = None,
@@ -32,7 +31,6 @@ class GoogleEncoder(BaseEncoder):
             model_name: The name of the pre-trained model to use for embedding.
                 If not provided, the default model specified in EncoderDefault will
                 be used.
-            score_threshold: The threshold for similarity scores.
             project_id: The Google Cloud project ID.
                 If not provided, it will be retrieved from the GOOGLE_PROJECT_ID
                 environment variable.
@@ -50,7 +48,7 @@ class GoogleEncoder(BaseEncoder):
         if name is None:
             name = EncoderDefault.GOOGLE.value['embedding_model']
 
-        super().__init__(name=name, score_threshold=score_threshold)
+        super().__init__(name=name)
 
         self.client = self._initialize_client(
             project_id, location, api_endpoint)

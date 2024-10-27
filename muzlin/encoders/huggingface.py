@@ -14,7 +14,6 @@ from muzlin.utils.logger import logger
 class HuggingFaceEncoder(BaseEncoder):
     name: str = 'BAAI/bge-small-en-v1.5'
     type: str = 'huggingface'
-    score_threshold: float = 0.5
     tokenizer_kwargs: dict = {}
     model_kwargs: dict = {}
     device: Optional[str] = None
@@ -126,20 +125,17 @@ class HFEndpointEncoder(BaseEncoder):
     Attributes:
         huggingface_url (str): The URL of the Hugging Face API endpoint.
         huggingface_api_key (str): The API key for authenticating with the Hugging Face API.
-        score_threshold (float): A threshold value used for filtering or processing the embeddings.
     """
 
     name: str = 'hugging_face_custom_endpoint'
     huggingface_url: Optional[str] = None
     huggingface_api_key: Optional[str] = None
-    score_threshold: float = 0.8
 
     def __init__(
         self,
         name: Optional[str] = 'hugging_face_custom_endpoint',
         huggingface_url: Optional[str] = None,
         huggingface_api_key: Optional[str] = None,
-        score_threshold: float = 0.8,
     ):
         """
         Initializes the HFEndpointEncoder with the specified parameters.
@@ -151,8 +147,6 @@ class HFEndpointEncoder(BaseEncoder):
                 Cannot be None.
             huggingface_api_key (str, optional): The API key for the Hugging Face API.
                 Cannot be None.
-            score_threshold (float, optional): A threshold for processing the embeddings.
-                Defaults to 0.8.
 
         Raises:
             ValueError: If either `huggingface_url` or `huggingface_api_key` is None.
@@ -160,7 +154,7 @@ class HFEndpointEncoder(BaseEncoder):
         huggingface_url = huggingface_url or os.getenv('HF_API_URL')
         huggingface_api_key = huggingface_api_key or os.getenv('HF_API_KEY')
 
-        super().__init__(name=name, score_threshold=score_threshold)  # type: ignore
+        super().__init__(name=name)  # type: ignore
 
         if huggingface_url is None:
             raise ValueError("HuggingFace endpoint url cannot be 'None'.")

@@ -1,6 +1,6 @@
-########
- Muzlin
-########
+.. image:: https://raw.githubusercontent.com/KulikDM/muzlin/main/images/Logo.png
+   :target: https://raw.githubusercontent.com/KulikDM/muzlin/main/images/Logo.png
+   :alt: Muzlin
 
 *When a filter cloth 🏳️ is needed rather than a simple RAG 🏴‍☠*
 
@@ -31,9 +31,9 @@
 
 ----
 
-*************
+#############
  What is it?
-*************
+#############
 
 Muzlin merges classical ML with advanced generative AI to efficiently
 filter text in the context of NLP and LLMs. It answers key questions in
@@ -55,9 +55,9 @@ semantic-based workflows, such as:
 **Note:** While production-ready, Muzlin is still evolving and subject
 to significant changes!
 
-************
+############
  Quickstart
-************
+############
 
 #. **Install** Muzlin using pip:
 
@@ -107,9 +107,9 @@ to significant changes!
 
       label = clf.predict(vector)
 
-**************
+##############
  Integrations
-**************
+##############
 
 Muzlin integrates with a wide array of libraries for anomaly detection,
 vector encoding, and graph-based setups.
@@ -126,11 +126,17 @@ vector encoding, and graph-based setups.
 |                                   | -  Fastembed            |                      |
 +-----------------------------------+-------------------------+----------------------+
 
+**Simple Schematic Implementation**
+
+.. image:: https://raw.githubusercontent.com/KulikDM/muzlin/main/images/Simple_Example.png
+   :target: https://raw.githubusercontent.com/KulikDM/muzlin/main/images/Simple_Example.png
+   :alt: Muzlin Pipeline
+
 ----
 
-***********
+###########
  Resources
-***********
+###########
 
 **Example Notebooks**
 
@@ -146,9 +152,9 @@ vector encoding, and graph-based setups.
 | `Graph-Based Filtering <https://github.com/KulikDM/muzlin/blob/main/examples/03_Graph_Filtering.ipynb>`_          | Using graph-based anomaly detection for semantic graphs like GraphRAG       |
 +-------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------+
 
-************
+############
  What Else?
-************
+############
 
 Looking for more? Check out other useful libraries like `Semantic Router
 <https://github.com/aurelio-labs/semantic-router>`_, `CRAG
@@ -157,9 +163,9 @@ Looking for more? Check out other useful libraries like `Semantic Router
 
 ----
 
-**************
+##############
  Contributing
-**************
+##############
 
 **Muzlin is still evolving!** At the moment their are major changes
 being done and the structure of Muzlin is still being refined. For now,

@@ -109,7 +109,6 @@ graph = [
 
 notebook = [
     "mlflow",
-    "umap-learn",
     "pandas",
     "faiss-cpu",
     "langchain-community",

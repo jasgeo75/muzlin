@@ -39,12 +39,11 @@ class OpenAIEncoder(BaseEncoder):
         openai_base_url: Optional[str] = None,
         openai_api_key: Optional[str] = None,
         openai_org_id: Optional[str] = None,
-        score_threshold: float = 0.82,
         dimensions: Union[int, NotGiven] = NotGiven(),
     ):
         if name is None:
             name = EncoderDefault.OPENAI.value['embedding_model']
-        super().__init__(name=name, score_threshold=score_threshold)
+        super().__init__(name=name)
         api_key = openai_api_key or os.getenv('OPENAI_API_KEY')
         base_url = openai_base_url or os.getenv('OPENAI_BASE_URL')
         openai_org_id = openai_org_id or os.getenv('OPENAI_ORG_ID')

@@ -34,14 +34,13 @@ class AzureOpenAIEncoder(BaseEncoder):
         azure_endpoint: Optional[str] = None,
         api_version: Optional[str] = None,
         model: Optional[str] = None,  # TODO we should change to `name` JB
-        score_threshold: float = 0.82,
         dimensions: Union[int, NotGiven] = NotGiven(),
         max_retries: int = 3,
     ):
         name = deployment_name
         if name is None:
             name = EncoderDefault.AZURE.value['embedding_model']
-        super().__init__(name=name, score_threshold=score_threshold)
+        super().__init__(name=name)
         self.api_key = api_key
         self.deployment_name = deployment_name
         self.azure_endpoint = azure_endpoint

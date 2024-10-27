@@ -18,14 +18,12 @@ class CohereEncoder(BaseEncoder):
         self,
         name: Optional[str] = None,
         cohere_api_key: Optional[str] = None,
-        score_threshold: float = 0.3,
         input_type: Optional[str] = 'search_query',
     ):
         if name is None:
             name = EncoderDefault.COHERE.value['embedding_model']
         super().__init__(
             name=name,
-            score_threshold=score_threshold,
             input_type=input_type,  # type: ignore
         )
         self.input_type = input_type
