@@ -1,4 +1,7 @@
+# Build distribution
 # Publishes to PyPi
+# Validate release
+# Create GitHub release
 
 name: Publish Release
 on:
@@ -30,3 +33,58 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Validate release
+        run: |
+
+          sleep 2m
+
+          printf "Beginning release validation"
+
+          repo_version=$(grep -oP '__version__ = "\K(\d+\.\d+\.\d+)' muzlin/__init__.py)
+
+          url="https://pypi.org/pypi/muzlin/json"
+          pypi_version=$(curl -s "$url" | jq -r '.info.version')
+
+          printf "Validating version update"
+
+          if [ "$pypi_version" != "$repo_version" ]; then
+            printf "\nNew PyPi version $pypi_version does not match new repo version $repo_version \n"
+            exit 1
+          fi
+          
+          latest_version=$pypi_version
+          echo "latest_version=$latest_version" >> $GITHUB_ENV
+
+          printf "\nNew PyPi version validated\n"
+
+      - name: Create GitHub release
+        env:
+          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+        run: |
+          printf "Preparing to create new GitHub release\n"
+
+          TAG_NAME="v${{ env.latest_version }}"
+          RELEASE_TITLE=$TAG_NAME
+
+          printf "\nCreating release notes\n"
+
+          RELEASE_NOTES="## What's Changed"$'\n'
+
+          while IFS= read -r line; do
+              RELEASE_NOTES+="* $line"$'\n'
+          done < <(grep -A 1 "v<${{ env.latest_version }}>," CHANGES.txt | grep -o -- "-- .*" | sed -e "s/^-- //")
+
+          RELEASE_NOTES=$(echo "$RELEASE_NOTES" | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g')
+
+          printf "\nPosting new release\n"
+
+          JSON_DATA="{ \"tag_name\": \"$TAG_NAME\", \"name\": \"$RELEASE_TITLE\", \"body\": \"$RELEASE_NOTES\", \"draft\": false, \"prerelease\": false }"
+
+          curl -X POST "https://api.github.com/repos/KulikDM/muzlin/releases" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $GIT_TOKEN" \
+            -d "$JSON_DATA"
+
+          printf "\nNew release posted succesfully\n"
+
