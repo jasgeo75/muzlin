@@ -60,27 +60,34 @@ class OutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
         arbitrary_types_allowed = True
 
     def __init__(self, **data):
-
         super().__init__(**data)
 
-        self._check_is_initalized()
-        if self.pipeline is not None:
-            return
+        # First check if we're loading an existing model
+        if os.path.exists(self.model):
+            self.pipeline = joblib.load(self.model)
+            if self.pipeline is not None:
+                self._load_model_attributes()
+                return
 
+        # If not loading model, create new pipeline
         if self.detector is None:
-
-            logger.info(
-                'No outlier detector was provided defaulting to PyOD PCA detector.'
-            )
+            logger.info('No outlier detector was provided defaulting to PyOD PCA detector.')
             global PCA
             from pyod.models.pca import PCA
-            self.detector = PCA(contamination=0.1,
-                                random_state=self.random_state)
+            self.detector = PCA(contamination=0.1, random_state=self.random_state)
 
         self.pipeline = Pipeline([
             ('scaler', StandardScaler()),
             ('detector', self.detector)
         ])
+
+    def _load_model_attributes(self):
+        """Load attributes from a fitted pipeline"""
+        check_is_fitted(self.pipeline)
+        self.threshold_ = self.pipeline.threshold_
+        self.labels_ = self.pipeline.labels_
+        self.decision_scores_ = self.pipeline.named_steps['detector'].decision_scores_
+        self.Xstd_ = self.pipeline.named_steps['detector'].Xstd_
 
     def fit(self, X: XType, y: Optional[Union[np.ndarray, list, None]] = None):
         r"""Fit function of the OutlierDetector class.
@@ -197,15 +204,18 @@ class OutlierDetector(BaseEstimator, OutlierMixin, BaseModel):
         return run_id
 
     def _check_is_initalized(self):
-
+        # If we have a model file and no pipeline, load it
         if (os.path.exists(self.model)) & (self.pipeline is None):
             self.pipeline = joblib.load(self.model)
+            check_is_fitted(self.pipeline)
+            self.threshold_ = self.pipeline.threshold_
+            self.labels_ = self.pipeline.labels_
+            self.decision_scores_ = self.pipeline.named_steps['detector'].decision_scores_
+            self.Xstd_ = self.pipeline.named_steps['detector'].Xstd_
+        # If no pipeline exists yet, just return
         elif self.pipeline is None:
             return
-
-        check_is_fitted(self.pipeline)
-
-        self.threshold_ = self.pipeline.threshold_
-        self.labels_ = self.pipeline.labels_
-        self.decision_scores_ = self.pipeline.named_steps['detector'].decision_scores_
-        self.Xstd_ = self.pipeline.named_steps['detector'].Xstd_
+        # Otherwise pipeline exists but wasn't loaded from file
+        else:
+            # Don't try to access attributes during initial creation
+            pass
